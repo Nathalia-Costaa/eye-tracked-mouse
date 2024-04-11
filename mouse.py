@@ -4,7 +4,7 @@ import pyautogui
 import time
 
 pyautogui.FAILSAFE = False # desativa a função de desligar o uso do olhar
-sensibilidade_do_modelo = 5.5
+sensibilidade_do_modelo = 25
 
 # lendo a camera e incializando a solução
 cam = cv2.VideoCapture(0)
@@ -30,9 +30,9 @@ while True:
     if landmark_points:
         landmarks = landmark_points[0].landmark
 
-        iris_and_mouth = [landmarks[145], landmarks[159], landmarks[13], landmarks[14]]
+        iris_and_mouth = [landmarks[145], landmarks[159], landmarks[13], landmarks[14], landmarks[468]]
 
-        distancia_da_boca = iris_and_mouth[-1].y - iris_and_mouth[-2].y
+        distancia_da_boca = iris_and_mouth[-2].y - iris_and_mouth[-3].y
 
         if distancia_da_boca > 0.076:
             pass
@@ -40,8 +40,8 @@ while True:
             # codigo do mouse
             iris_principal = iris_and_mouth[0]
             # adaptar x,y para pixels
-            x = (iris_and_mouth[0].x + iris_and_mouth[1].x) / 2
-            y = (iris_and_mouth[0].y + iris_and_mouth[1].y) / 2
+            x = (iris_and_mouth[4].x-0.32)
+            y = (iris_and_mouth[4].y-0.40)
             x = int(x * frame_w) * sensibilidade_do_modelo
             y = int(y * frame_h) * sensibilidade_do_modelo
             #todo: colocar offset, olhar para um ponto e pegar a diferença
