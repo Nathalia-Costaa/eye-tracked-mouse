@@ -1,10 +1,10 @@
+import math
 import mediapipe as mp
 import cv2
 import pyautogui
-import time
 
 pyautogui.FAILSAFE = False # desativa a função de desligar o uso do olhar
-sensibilidade_do_modelo = 25
+sensibilidade_do_modelo = 3.85
 
 # lendo a camera e incializando a solução
 cam = cv2.VideoCapture(0)
@@ -17,7 +17,15 @@ tela_w, tela_h = pyautogui.size()
 _, frame = cam.read()
 frame_h, frame_w, _ = frame.shape
 
-pyautogui.moveTo(0, 0)
+RIGHT_IRIS = [474, 475, 476, 477]
+LEFT_IRIS = [469, 470, 471, 472]
+L_H_LEFT = [33]  # right eye right most landmark
+L_H_RIGHT = [133]  # right eye left most landmark
+R_H_LEFT = [362]  # left eye right most landmark
+R_H_RIGHT = [263]  # left eye left most landmark
+
+distance = int(math.sqrt((L_H_RIGHT - L_H_LEFT**2 + (R_H_RIGHT - R_H_LEFT)**2)))
+
 # loop principal
 while True:
     _, img = cam.read()
@@ -29,10 +37,9 @@ while True:
 
     if landmark_points:
         landmarks = landmark_points[0].landmark
+        iris_and_mouth = [landmarks[distance], landmarks[476], landmarks[13], landmarks[14]]
 
-        iris_and_mouth = [landmarks[145], landmarks[159], landmarks[13], landmarks[14], landmarks[468]]
-
-        distancia_da_boca = iris_and_mouth[-2].y - iris_and_mouth[-3].y
+        distancia_da_boca = iris_and_mouth[-1].y - iris_and_mouth[-2].y
 
         if distancia_da_boca > 0.076:
             pass
@@ -40,13 +47,9 @@ while True:
             # codigo do mouse
             iris_principal = iris_and_mouth[0]
             # adaptar x,y para pixels
-            x = (iris_and_mouth[4].x-0.32)
-            y = (iris_and_mouth[4].y-0.40)
-            x = int(x * frame_w) * sensibilidade_do_modelo
-            y = int(y * frame_h) * sensibilidade_do_modelo
-            #todo: colocar offset, olhar para um ponto e pegar a diferença
+            x = int(iris_principal.x * frame_w) * sensibilidade_do_modelo
+            y = int(iris_principal.y * frame_h) * sensibilidade_do_modelo
             pyautogui.moveTo(x, y)
-            print(pyautogui.onScreen(x, y))
 
             distancia_da_iris = iris_and_mouth[0].y - iris_and_mouth[1].y
             print(distancia_da_iris)
@@ -61,6 +64,8 @@ while True:
             x = int(lm.x * frame_w)
             y = int(lm.y * frame_h)
             cv2.circle(img, (x, y), 4, (255, 255, 0))
+
+    cv2.imshow('Eye tracking', img)
 
     # Esperando a letra q
     if cv2.waitKey(20) & 0xFF == ord('q'):
